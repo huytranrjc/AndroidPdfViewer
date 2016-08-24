@@ -20,7 +20,8 @@ public interface Constants {
     boolean DEBUG_MODE = false;
 
     /** Between 0 and 1, the thumbnails quality (default 0.3) */
-    float THUMBNAIL_RATIO = 0.3f;
+    /** A bit hack to fit our pdf file size */
+    float THUMBNAIL_RATIO = 1.5f;
 
     /**
      * The size of the rendered parts (default 256)
@@ -44,8 +45,8 @@ public interface Constants {
     }
 
     interface Pinch {
-
-        float MAXIMUM_ZOOM = 10;
+        // a bit hack to avoid rendering error when zoom
+        float MAXIMUM_ZOOM = 4;
 
         float MINIMUM_ZOOM = 1;
 
