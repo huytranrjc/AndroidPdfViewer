@@ -1,3 +1,9 @@
+## 2.0.3 (2016-08-30)
+* Fix scroll handle NPE after document loading error
+
+## 2.0.2 (2016-08-27)
+* Fix exceptions caused by improperly finishing rendering task
+
 ## 2.0.1 (2016-08-16)
 * Fix NPE when onDetachFromWindow is called
 
