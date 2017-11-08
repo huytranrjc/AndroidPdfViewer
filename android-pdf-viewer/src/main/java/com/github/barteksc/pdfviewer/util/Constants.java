@@ -15,40 +15,37 @@
  */
 package com.github.barteksc.pdfviewer.util;
 
-public interface Constants {
+public class Constants {
 
-    boolean DEBUG_MODE = false;
+    public static boolean DEBUG_MODE = false;
 
     /** Between 0 and 1, the thumbnails quality (default 0.3) */
     /** A bit hack to fit our pdf file size */
-    float THUMBNAIL_RATIO = 1.5f;
+    public static float THUMBNAIL_RATIO = 1.5f;
 
     /**
      * The size of the rendered parts (default 256)
      * Tinier : a little bit slower to have the whole page rendered but more reactive.
      * Bigger : user will have to wait longer to have the first visual results
      */
-    float PART_SIZE = 256;
-
-    /** The size of the grid of loaded images around the current point */
-    int GRID_SIZE = 10;
+    public static float PART_SIZE = 256;
 
     /** Number of preloaded rows or columns */
-    int PRELOAD_COUNT = 7;
+    public static int PRELOAD_COUNT = 7;
 
-    interface Cache {
+    public static class Cache {
 
         /** The size of the cache (number of bitmaps kept) */
-        int CACHE_SIZE = (int) Math.pow(GRID_SIZE, 2d);
+        public static int CACHE_SIZE = 120;
 
-        int THUMBNAILS_CACHE_SIZE = 6;
+        public static int THUMBNAILS_CACHE_SIZE = 6;
     }
 
-    interface Pinch {
+    public static interface Pinch {
         // a bit hack to avoid rendering error when zoom
-        float MAXIMUM_ZOOM = 4;
+        public static float MAXIMUM_ZOOM = 4;
 
-        float MINIMUM_ZOOM = 1;
+        public static float MINIMUM_ZOOM = 1;
 
     }
 

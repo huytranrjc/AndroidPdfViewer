@@ -1,3 +1,61 @@
+## 2.8.0 (2017-10-31)
+* Add handling of invalid pages, inspired by pull request #433. Exception on page opening crashed application until now,
+currently `OnPageErrorListener` set with `.onPageError()` is called. Invalid page color can be set using `.invalidPageColor()`
+* Implement `canScrollVertically()` and `canScrollHorizontally()` methods to work e.g. with `SwipeRefreshLayout`
+* Fix bug when `Configurator#load()` method was called before view has been measured, which resulted in empty canvas
+
+## 2.7.0 (2017-08-30)
+* Merge pull request by [owurman](https://github.com/owurman) with added OnTapListener
+* Merge bugfix by [lzwandnju](https://github.com/lzwandnju) to prevent `ArithmeticException: divide by zero`
+
+## 2.7.0-beta.1 (2017-07-05)
+* Updates PdfiumAndroid to 1.7.0 which reduces memory usage about twice and improves performance by using RGB 565 format (when not using `pdfView.useBestQuality(true)`)
+
+## 2.7.0-beta (2017-06-16)
+* Update PdfiumAndroid to 1.6.1, which fixed font rendering (issue #253)
+* Add `.spacing(int)` method to add spacing (in dp) between document pages
+* Fix drawing with `.onDraw(onDrawListener)`
+* Add `.onDrawAll(onDrawListener)` method to draw on all pages
+* Add small rendering improvements
+* Fix rendering when duplicated pages are passed to `.pages(..)`
+
+## 2.6.1 (2017-06-08)
+* Fix disappearing scroll handle
+
+## 2.6.0 (2017-06-04)
+* Fix fling on single-page documents
+* Greatly improve overall fling experience
+
+## 2.5.1 (2017-04-08)
+* Temporarily downgrade PdfiumAndroid until #253 will be fixed
+
+## 2.5.0 (2017-03-23)
+* Update PdfiumAndroid to 1.6.0, which is based on newest Pdfium from Android 7.1.1. It should fix many rendering and fonts problems
+* Add method `pdfView.fitToWidth()`, which called in `OnRenderListener.onInitiallyRendered()` will fit document to width of the screen (inspired by [1stmetro](https://github.com/1stmetro))
+* Add change from pull request by [isanwenyu](https://github.com/isanwenyu) to get rid of rare IllegalArgumentException while rendering
+* Add `OnRenderListener`, that will be called once, right before document is drawn on the screen
+* Add `Configurator.enableAntialiasing()` to improve rendering on low-res screen a little bit (as suggested by [majkimester](majkimester))
+* Modify engine to not block UI when big documents are loaded
+* Change `Constants` interface and inner interfaces to static public classes, to allow modifying core config values
+
+## 2.4.0 (2016-12-30)
+* Merge pull request by [hansinator85](https://github.com/hansinator85) which allows to enable/disable rendering during scale
+* Make rendering during scale disabled by default (looks better)
+* Merge pull request by [cesquivias](https://github.com/cesquivias) which replaces RenderingAsyncTask with Handler to simply code and work with testing frameworks
+
+## 2.3.0 (2016-11-19)
+* Add mechanism for providing documents from different sources - more info in README
+* Update PdfiumAndroid to 1.5.0
+* Thanks to document sources and PdfiumAndroid update, in-memory documents are supported
+* Fix not working OnClickListener on PDFView
+* **com.github.barteksc.exception.FileNotFoundException** is deprecated and all usages was removed.
+All exceptions are delivered to old Configurator#onError() listener.
+
+## 2.2.0 (2016-11-15)
+* Merge pull request by [skarempudi](https://github.com/skarempudi) which fixes SDK 23 permission problems in sample app
+* Merge pull request by skarempudi for showing info on phones without file manager
+* Add feature from 1.x - canvas is set to drawable from View#getBackground()
+
 ## 2.1.0 (2016-09-16)
 * fixed loading document from subfolder in assets directory
 * fixed scroll handle NPE after document loading error (improvement of 2.0.3 fix)

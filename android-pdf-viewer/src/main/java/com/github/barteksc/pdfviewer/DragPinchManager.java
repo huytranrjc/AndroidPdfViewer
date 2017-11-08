@@ -22,6 +22,7 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.github.barteksc.pdfviewer.scroll.ScrollHandle;
+import com.github.barteksc.pdfviewer.listener.OnTapListener;
 
 import static com.github.barteksc.pdfviewer.util.Constants.Pinch.MAXIMUM_ZOOM;
 import static com.github.barteksc.pdfviewer.util.Constants.Pinch.MINIMUM_ZOOM;
@@ -43,6 +44,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private boolean swipeVertical;
 
     private boolean scrolling = false;
+    private boolean scaling = false;
 
     public DragPinchManager(PDFView pdfView, AnimationManager animationManager) {
         this.pdfView = pdfView;
@@ -80,14 +82,18 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        ScrollHandle ps = pdfView.getScrollHandle();
-        if (ps != null && !pdfView.documentFitsView()) {
-            if (!ps.shown()) {
-                ps.show();
-            } else {
-                ps.hide();
+        OnTapListener onTapListener = pdfView.getOnTapListener();
+        if (onTapListener == null || !onTapListener.onTap(e)) {
+            ScrollHandle ps = pdfView.getScrollHandle();
+            if (ps != null && !pdfView.documentFitsView()) {
+                if (!ps.shown()) {
+                    ps.show();
+                } else {
+                    ps.hide();
+                }
             }
         }
+        pdfView.performClick();
         return true;
     }
 
@@ -130,8 +136,9 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         if (isZooming() || isSwipeEnabled) {
             pdfView.moveRelativeTo(-distanceX, -distanceY);
         }
-        pdfView.loadPageByOffset();
-
+        if (!scaling || pdfView.doRenderDuringScale()) {
+            pdfView.loadPageByOffset();
+        }
         return true;
     }
 
@@ -149,11 +156,18 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         int xOffset = (int) pdfView.getCurrentXOffset();
         int yOffset = (int) pdfView.getCurrentYOffset();
-        animationManager.startFlingAnimation(xOffset,
-                yOffset, (int) (velocityX),
-                (int) (velocityY),
-                xOffset * (swipeVertical ? 2 : pdfView.getPageCount()), 0,
-                yOffset * (swipeVertical ? pdfView.getPageCount() : 2), 0);
+
+        float minX, minY;
+        if (pdfView.isSwipeVertical()) {
+            minX = -(pdfView.toCurrentScale(pdfView.getOptimalPageWidth()) - pdfView.getWidth());
+            minY = -(pdfView.calculateDocLength() - pdfView.getHeight());
+        } else {
+            minX = -(pdfView.calculateDocLength() - pdfView.getWidth());
+            minY = -(pdfView.toCurrentScale(pdfView.getOptimalPageHeight()) - pdfView.getHeight());
+        }
+
+        animationManager.startFlingAnimation(xOffset, yOffset, (int) (velocityX), (int) (velocityY),
+                (int) minX, 0, (int) minY, 0);
 
         return true;
     }
@@ -173,6 +187,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onScaleBegin(ScaleGestureDetector detector) {
+        scaling = true;
         return true;
     }
 
@@ -180,6 +195,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     public void onScaleEnd(ScaleGestureDetector detector) {
         pdfView.loadPages();
         hideHandle();
+        scaling = false;
     }
 
     @Override

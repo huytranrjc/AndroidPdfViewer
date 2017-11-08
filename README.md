@@ -2,16 +2,19 @@
 
 # Android PdfViewer
 
+__AndroidPdfViewer 1.x is available on [AndroidPdfViewerV1](https://github.com/barteksc/AndroidPdfViewerV1)
+repo, where can be developed independently. Version 1.x uses different engine for drawing document on canvas,
+so if you don't like 2.x version, try 1.x.__
+
 Library for displaying PDF documents on Android, with `animations`, `gestures`, `zoom` and `double tap` support.
-It is based on [PdfiumAndroid](https://github.com/barteksc/PdfiumAndroid) for decoding PDF files. Works on API 11 and higher.
+It is based on [PdfiumAndroid](https://github.com/barteksc/PdfiumAndroid) for decoding PDF files. Works on API 11 (Android 3.0) and higher.
 Licensed under Apache License 2.0.
 
-## What's new in 2.1.0?
-* fixed loading document from subfolder in assets directory
-* fixed scroll handle NPE after document loading error (improvement of 2.0.3 fix)
-* fixed incorrect scroll handle position with additional views in RelativeLayout
-* improved cache usage and fixed bug with rendering when zooming
-* if you are using custom scroll handle: scroll handle implementation changed a little bit, check DefaultScrollHandle source for details
+## What's new in 2.8.0?
+* Add handling of invalid pages, inspired by pull request [#433](https://github.com/barteksc/AndroidPdfViewer/pull/433). Exception on page opening crashed application until now,
+currently `OnPageErrorListener` set with `Configurator#onPageError()` is called. Invalid page color (`Color` class) can be set using `Configurator#invalidPageColor()`
+* Implement `canScrollVertically()` and `canScrollHorizontally()` methods to work e.g. with `SwipeRefreshLayout`
+* Fix bug when `Configurator#load()` method was called before view has been measured, which resulted in empty canvas
 
 ## Changes in 2.0 API
 * `Configurator#defaultPage(int)` and `PDFView#jumpTo(int)` now require page index (i.e. starting from 0)
@@ -26,7 +29,7 @@ Licensed under Apache License 2.0.
 
 Add to _build.gradle_:
 
-`compile 'com.github.barteksc:android-pdf-viewer:2.1.0'`
+`compile 'com.github.barteksc:android-pdf-viewer:2.8.0'`
 
 Library is available in jcenter repository, probably it'll be in Maven Central soon.
 
@@ -47,26 +50,41 @@ pdfView.fromUri(Uri)
 or
 pdfView.fromFile(File)
 or
+pdfView.fromBytes(byte[])
+or
+pdfView.fromStream(InputStream) // stream is written to bytearray - native code cannot use Java Streams
+or
+pdfView.fromSource(DocumentSource)
+or
 pdfView.fromAsset(String)
     .pages(0, 2, 1, 3, 3, 3) // all pages are displayed by default
-    .enableSwipe(true)
+    .enableSwipe(true) // allows to block changing pages using swipe
     .swipeHorizontal(false)
     .enableDoubletap(true)
     .defaultPage(0)
+    // allows to draw something on the current page, usually visible in the middle of the screen
     .onDraw(onDrawListener)
-    .onLoad(onLoadCompleteListener)
+    // allows to draw something on all pages, separately for every page. Called only for visible pages
+    .onDrawAll(onDrawListener)
+    .onLoad(onLoadCompleteListener) // called after document is loaded and starts to be rendered
     .onPageChange(onPageChangeListener)
     .onPageScroll(onPageScrollListener)
     .onError(onErrorListener)
-    .enableAnnotationRendering(false)
+    .onPageError(onPageErrorListener)
+    .onRender(onRenderListener) // called after document is rendered for the first time
+    // called on single tap, return true if handled, false to toggle scroll handle visibility
+    .onTap(onTapListener)
+    .enableAnnotationRendering(false) // render annotations (such as comments, colors or forms)
     .password(null)
     .scrollHandle(null)
+    .enableAntialiasing(true) // improve rendering a little bit on low-res screens
+    // spacing between pages in dp. To define spacing color, set view background
+    .spacing(0)
+    .invalidPageColor(Color.WHITE) // color of page that is invalid and cannot be loaded
     .load();
 ```
 
-* `enableSwipe` is optional, it allows you to block changing pages using swipe
 * `pages` is optional, it allows you to filter and order the pages of the PDF as you need
-* `onDraw` is also optional, and allows you to draw something on a provided canvas, above the current page
 
 ## Scroll handle
 
@@ -85,6 +103,21 @@ By using constructor with second argument (`new DefaultScrollHandle(this, true)`
 You can also create custom scroll handles, just implement **ScrollHandle** interface.
 All methods are documented as Javadoc comments on interface [source](https://github.com/barteksc/AndroidPdfViewer/tree/master/android-pdf-viewer/src/main/java/com/github/barteksc/pdfviewer/scroll/ScrollHandle.java).
 
+## Document sources
+Version 2.3.0 introduced _document sources_, which are just providers for PDF documents.
+Every provider implements **DocumentSource** interface.
+Predefined providers are available in **com.github.barteksc.pdfviewer.source** package and can be used as
+samples for creating custom ones.
+
+Predefined providers can be used with shorthand methods:
+```
+pdfView.fromUri(Uri)
+pdfView.fromFile(File)
+pdfView.fromBytes(byte[])
+pdfView.fromStream(InputStream)
+pdfView.fromAsset(String)
+```
+Custom providers may be used with `pdfView.fromSource(DocumentSource)` method.
 
 ## Additional options
 
@@ -114,6 +147,24 @@ There is good article on automatically splitting your application into multiple 
 available [here](http://ph0b.com/android-studio-gradle-and-ndk-integration/).
 Most important section is _Improving multiple APKs creation and versionCode handling with APK Splits_, but whole article is worth reading.
 You only need to do this in your application, no need for forking PdfiumAndroid or so.
+
+### Why I cannot open PDF from URL?
+Downloading files is long running process which must be aware of Activity lifecycle, must support some configuration, 
+data cleanup and caching, so creating such module will probably end up as new library.
+
+### How can I show last opened page after configuration change?
+You have to store current page number and then set it with `pdfView.defaultPage(page)`, refer to sample app
+
+### How can I fit document to screen width (eg. on orientation change)?
+Use this code snippet:
+``` java
+Configurator.onRender(new OnRenderListener() {
+    @Override
+    public void onInitiallyRendered(int pages, float pageWidth, float pageHeight) {
+        pdfView.fitToWidth(); // optionally pass page number
+    }
+});
+```
 
 ## One more thing
 If you have any suggestions on making this lib better, write me, create issue or write some code and send pull request.

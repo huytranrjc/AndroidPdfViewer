@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Bartosz Schiller
+ * Copyright 2017 Bartosz Schiller
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.barteksc.pdfviewer.exception;
+package com.github.barteksc.pdfviewer.listener;
 
-@Deprecated
-public class FileNotFoundException extends RuntimeException {
+public interface OnPageErrorListener {
 
-    public FileNotFoundException(String detailMessage) {
-        super(detailMessage);
-    }
-
-    public FileNotFoundException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-    }
+    /**
+     * Called if error occurred while loading PDF page
+     * @param t Throwable with error
+     */
+    void onPageError(int page, Throwable t);
 }
